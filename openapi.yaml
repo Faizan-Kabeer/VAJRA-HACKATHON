@@ -1,0 +1,242 @@
+openapi: 3.1.0
+info:
+  title: Conversation Intelligence API
+  description: Backend API for Multimodal Conversation Intelligence
+  version: 1.0.0
+paths:
+  /api/v1/analyze/audio:
+    post:
+      summary: Analyze Audio Endpoint
+      operationId: analyze_audio_endpoint_api_v1_analyze_audio_post
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                file:
+                  type: string
+                  format: binary
+                  title: File
+              required:
+                - file
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AnalysisResponse'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+      security:
+        - APIKeyHeader: []
+  /api/v1/analyze/text:
+    post:
+      summary: Analyze Text Endpoint
+      operationId: analyze_text_endpoint_api_v1_analyze_text_post
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AnalysisRequest'
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AnalysisResponse'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+      security:
+        - APIKeyHeader: []
+components:
+  schemas:
+    AdvancedAnalysis:
+      properties:
+        compliance_violations:
+          items:
+            type: string
+          type: array
+          title: Compliance Violations
+        risk_score:
+          type: integer
+          maximum: 100
+          minimum: 0
+          title: Risk Score
+        risk_flags:
+          items:
+            type: string
+          type: array
+          title: Risk Flags
+        call_outcome:
+          type: string
+          title: Call Outcome
+        agent_quality_score:
+          anyOf:
+            - type: integer
+            - type: 'null'
+          title: Agent Quality Score
+      type: object
+      required:
+        - compliance_violations
+        - risk_score
+        - risk_flags
+        - call_outcome
+      title: AdvancedAnalysis
+      description: Enterprise-level flags and classifications.
+    AnalysisRequest:
+      properties:
+        transcript:
+          type: string
+          title: Transcript
+        client_context:
+          $ref: '#/components/schemas/ClientContext'
+      type: object
+      required:
+        - transcript
+        - client_context
+      title: AnalysisRequest
+      description: Schema for text-based conversation analysis.
+    AnalysisResponse:
+      properties:
+        status:
+          type: string
+          title: Status
+        input_type:
+          type: string
+          title: Input Type
+        core_intelligence:
+          $ref: '#/components/schemas/CoreIntelligence'
+        advanced_analysis:
+          $ref: '#/components/schemas/AdvancedAnalysis'
+        raw_transcript:
+          anyOf:
+            - type: string
+            - type: 'null'
+          title: Raw Transcript
+      type: object
+      required:
+        - status
+        - input_type
+        - core_intelligence
+        - advanced_analysis
+      title: AnalysisResponse
+      description: The final structured JSON response sent to the client.
+    ClientContext:
+      properties:
+        domain:
+          type: string
+          title: Domain
+          examples:
+            - Banking
+        products:
+          items:
+            type: string
+          type: array
+          title: Products
+          examples:
+            - - Credit Cards
+              - Savings Accounts
+        policies:
+          items:
+            type: string
+          type: array
+          title: Policies
+          examples:
+            - - No remote desktop software allowed
+        risk_triggers:
+          items:
+            type: string
+          type: array
+          title: Risk Triggers
+          examples:
+            - - AnyDesk
+              - crypto
+              - unauthorized transfer
+      type: object
+      required:
+        - domain
+        - products
+        - policies
+        - risk_triggers
+      title: ClientContext
+      description: Configuration that influences analysis based on business rules.
+    CoreIntelligence:
+      properties:
+        summary:
+          type: string
+          title: Summary
+        detected_languages:
+          items:
+            type: string
+          type: array
+          title: Detected Languages
+        overall_sentiment:
+          type: string
+          title: Overall Sentiment
+        primary_intents:
+          items:
+            type: string
+          type: array
+          title: Primary Intents
+        key_topics:
+          items:
+            type: string
+          type: array
+          title: Key Topics
+      type: object
+      required:
+        - summary
+        - detected_languages
+        - overall_sentiment
+        - primary_intents
+        - key_topics
+      title: CoreIntelligence
+      description: Mandatory intelligence markers.
+    HTTPValidationError:
+      properties:
+        detail:
+          items:
+            $ref: '#/components/schemas/ValidationError'
+          type: array
+          title: Detail
+      type: object
+      title: HTTPValidationError
+    ValidationError:
+      properties:
+        loc:
+          items:
+            anyOf:
+              - type: string
+              - type: integer
+          type: array
+          title: Location
+        msg:
+          type: string
+          title: Message
+        type:
+          type: string
+          title: Error Type
+      type: object
+      required:
+        - loc
+        - msg
+        - type
+      title: ValidationError
+  securitySchemes:
+    APIKeyHeader:
+      type: apiKey
+      name: X-API-Key
+      in: header

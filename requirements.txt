@@ -1,0 +1,8 @@
+fastapi
+uvicorn
+pydantic
+assemblyai
+google-genai
+python-multipart
+python-dotenv
+pydantic_settings
